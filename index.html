@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚡ 전기기사 수험 알리미</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0f1a;
+  --bg2: #0f1825;
+  --bg3: #141e2e;
+  --card: #111928;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8edf5;
+  --text2: #8a99b3;
+  --text3: #4a5a70;
+  --accent: #3b82f6;
+  --accent2: #60a5fa;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --purple: #8b5cf6;
+  --teal: #14b8a6;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Noto Sans KR', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 배경 그리드 패턴 */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 레이아웃 */
+.shell { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+/* 헤더 */
+header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,15,26,0.95);
+  backdrop-filter: blur(12px);
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.logo-text { font-size: 13px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.header-time {
+  font-family: var(--mono);
+  font-size: 18px; font-weight: 600;
+  color: var(--accent2);
+  letter-spacing: 1px;
+}
+
+/* 탭 네비 */
+nav {
+  display: flex;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+nav::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 1; min-width: 60px;
+  padding: 10px 4px 9px;
+  text-align: center;
+  font-size: 11px; color: var(--text3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  user-select: none;
+}
+.tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+.tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+/* 메인 콘텐츠 */
+main { flex: 1; padding: 16px 16px 80px; }
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 섹션 레이블 */
+.sec-label {
+  font-size: 10px; font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 20px 0 10px;
+}
+.sec-label:first-child { margin-top: 0; }
+
+/* 카드 */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.card-row { display: flex; align-items: center; justify-content: space-between; }
+
+/* D-Day 섹션 */
+.dday-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.dday-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.dday-card.urgent { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+.dday-card.ok { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+.dday-num {
+  font-family: var(--mono);
+  font-size: 28px; font-weight: 600;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.dday-label { font-size: 10px; color: var(--text2); }
+.dday-date { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* 현재 블록 카드 */
+.current-block {
+  border-left: 3px solid var(--accent);
+  padding-left: 13px;
+}
+.block-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px;
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+.block-study  { background: rgba(59,130,246,0.15); color: var(--accent2); }
+.block-meal   { background: rgba(16,185,129,0.15); color: var(--green); }
+.block-rest   { background: rgba(245,158,11,0.15); color: var(--amber); }
+.block-sport  { background: rgba(245,158,11,0.15); color: var(--amber); }
+.block-sleep  { background: rgba(139,92,246,0.15); color: var(--purple); }
+
+.block-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+.block-remain { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+
+/* 진행률 바 */
+.progress-wrap { margin-top: 10px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 5px; }
+.progress-bar { height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+.fill-blue { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.fill-green { background: linear-gradient(90deg, var(--green), #34d399); }
+.fill-amber { background: linear-gradient(90deg, var(--amber), #fcd34d); }
+
+/* 시간표 뷰 */
+.timeline-wrap { position: relative; }
+.tl-item {
+  display: flex; gap: 12px;
+  padding: 8px 0;
+  position: relative;
+}
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: 42px; top: 28px; bottom: -8px;
+  width: 1px;
+  background: var(--border);
+}
+.tl-item:last-child::before { display: none; }
+.tl-time {
+  width: 42px; flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 11px; color: var(--text3);
+  padding-top: 4px;
+  text-align: right;
+}
+.tl-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+  position: relative; z-index: 1;
+}
+.dot-study  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.dot-meal   { background: var(--green); }
+.dot-rest   { background: var(--amber); }
+.dot-sport  { background: var(--amber); }
+.dot-sleep  { background: var(--purple); }
+.dot-active { transform: scale(1.4); }
+
+.tl-content { flex: 1; }
+.tl-name {
+  font-size: 13px; font-weight: 500;
+  color: var(--text);
+  padding: 2px 0;
+}
+.tl-name.active-text { color: var(--accent2); }
+.tl-note { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.tl-item.active-row .tl-content {
+  background: rgba(59,130,246,0.06);
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin: -6px -8px;
+}
+
+/* 일정 뷰 */
+.event-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.event-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 4px;
+}
+.event-title { font-size: 13px; font-weight: 500; }
+.event-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.event-dday {
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+/* 진도 뷰 */
+.subject-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.subj-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.subj-name { font-size: 13px; font-weight: 500; }
+.subj-pct { font-family: var(--mono); font-size: 12px; }
+.chapter-list { display: flex; flex-direction: column; gap: 6px; }
+.chapter-item {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; padding: 2px 0;
+}
+.ch-check {
+  width: 16px; height: 16px; border-radius: 4px;
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 10px;
+  transition: all 0.15s;
+}
+.ch-check.done { background: var(--green); border-color: var(--green); }
+.ch-text { font-size: 12px; color: var(--text2); }
+.ch-text.done { text-decoration: line-through; color: var(--text3); }
+
+/* 인증 뷰 */
+.streak-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.streak-dot {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600;
+}
+.streak-done { background: rgba(16,185,129,0.2); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.streak-today { background: rgba(59,130,246,0.2); color: var(--accent2); border: 1px solid var(--accent); }
+.streak-empty { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+
+.input-group { margin-bottom: 12px; }
+.input-label { font-size: 11px; color: var(--text2); margin-bottom: 5px; }
+.input-field {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: var(--sans);
+  font-size: 13px; color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input-field:focus { border-color: var(--accent); }
+.input-number {
+  width: 100px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: var(--mono);
+  font-size: 13px; color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input-number:focus { border-color: var(--accent); }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border: none; border-radius: 10px;
+  color: #fff; font-family: var(--sans);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  letter-spacing: 0.3px;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+
+.mentor-msg {
+  background: rgba(59,130,246,0.07);
+  border: 1px solid rgba(59,130,246,0.15);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--accent2);
+  line-height: 1.6;
+  margin-top: 12px;
+  display: none;
+}
+
+/* 토스트 알림 */
+#toast-container {
+  position: fixed;
+  top: 16px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  width: calc(100% - 32px);
+  max-width: 440px;
+  pointer-events: none;
+}
+.toast {
+  background: #1a2540;
+  border: 1px solid rgba(59,130,246,0.4);
+  border-radius: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  pointer-events: all;
+  display: flex; align-items: flex-start; gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: toastIn 0.3s ease;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toast.urgent { border-color: rgba(239,68,68,0.5); background: rgba(30,10,10,0.95); }
+.toast.success { border-color: rgba(16,185,129,0.4); }
+@keyframes toastIn { from { opacity:0; transform: translateY(-12px); } to { opacity:1; transform: translateY(0); } }
+.toast-icon { font-size: 18px; flex-shrink: 0; }
+.toast-body { flex: 1; }
+.toast-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.toast-msg { font-size: 12px; color: var(--text2); line-height: 1.4; }
+.toast-close {
+  background: none; border: none; color: var(--text3);
+  cursor: pointer; font-size: 16px; padding: 0;
+  flex-shrink: 0; line-height: 1;
+}
+
+/* 모달 */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 500;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 20px;
+  width: calc(100% - 40px);
+  max-width: 360px;
+  animation: fadeIn 0.2s ease;
+}
+.modal-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+.btn-row { display: flex; gap: 8px; margin-top: 16px; }
+.btn-ghost {
+  flex: 1; padding: 10px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 8px; color: var(--text2);
+  font-family: var(--sans); font-size: 13px;
+  cursor: pointer;
+}
+
+/* 오늘 치트키 단원 */
+.today-unit {
+  background: rgba(139,92,246,0.08);
+  border: 1px solid rgba(139,92,246,0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.today-unit-label { font-size: 10px; color: var(--purple); font-weight: 700; letter-spacing: 0.08em; margin-bottom: 4px; }
+.today-unit-name { font-size: 14px; font-weight: 500; }
+.today-unit-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* 백업 카드 */
+#backup-card { border-color: rgba(59,130,246,0.2); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">전기기사 수험 알리미</div>
+        <div class="logo-sub">2026 정기 2회 도전</div>
+      </div>
+    </div>
+    <div class="header-time" id="hdr-time">00:00:00</div>
+  </header>
+
+  <nav>
+    <div class="tab active" onclick="switchTab('dashboard')">
+      <span class="tab-icon">🏠</span>홈
+    </div>
+    <div class="tab" onclick="switchTab('schedule')">
+      <span class="tab-icon">📅</span>시간표
+    </div>
+    <div class="tab" onclick="switchTab('calendar')">
+      <span class="tab-icon">📆</span>일정
+    </div>
+    <div class="tab" onclick="switchTab('progress')">
+      <span class="tab-icon">📚</span>진도
+    </div>
+    <div class="tab" onclick="switchTab('cert')">
+      <span class="tab-icon">✅</span>인증
+    </div>
+  </nav>
+
+  <main>
+    <!-- 홈 대시보드 -->
+    <div class="view active" id="view-dashboard">
+      <div class="sec-label">D-Day 카운트다운</div>
+      <div class="dday-grid">
+        <div class="dday-card urgent">
+          <div class="dday-num" id="dd-written" style="color:var(--amber)">-</div>
+          <div class="dday-label">✏️ 필기시험</div>
+          <div class="dday-date">2026.05.09</div>
+        </div>
+        <div class="dday-card ok">
+          <div class="dday-num" id="dd-reg" style="color:var(--accent2)">-</div>
+          <div class="dday-label">📋 원서접수</div>
+          <div class="dday-date">2026.04.20</div>
+        </div>
+      </div>
+
+      <div class="sec-label">오늘 학습 단원</div>
+      <div class="today-unit">
+        <div class="today-unit-label">📖 TODAY'S CHAPTER</div>
+        <div class="today-unit-name" id="today-chapter">회로이론 — 직류회로 & 교류회로</div>
+        <div class="today-unit-sub" id="today-chapter-sub">필기 치트키 1과목 | 1단계 이론 학습</div>
+      </div>
+
+      <div class="sec-label">현재 블록</div>
+      <div class="card current-block" id="current-block-card">
+        <div class="block-badge block-study" id="current-block-badge">공부</div>
+        <div class="block-name" id="current-block-name">오전 1블록 — 이론 신규 학습</div>
+        <div class="block-remain" id="current-block-remain">다음 알림까지 --:--</div>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>블록 진행률</span>
+            <span id="block-pct">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill fill-blue" id="block-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-label">오늘 진도</div>
+      <div class="card">
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>전체 학습 진행률</span>
+            <span id="total-pct">0%</span>
+          </div>
+          <div class="progress-bar" style="height:6px">
+            <div class="progress-fill fill-green" id="total-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-label">원장 한마디</div>
+      <div class="card" id="mentor-quote" style="border-left:3px solid var(--accent); font-size:13px; color:var(--text2); line-height:1.7;">
+        지금 이 순간에도 어딘가에서 누군가는 공부하고 있다. 네가 쉬는 동안 그 차이는 벌어진다.
+      </div>
+    </div>
+
+    <!-- 시간표 뷰 -->
+    <div class="view" id="view-schedule">
+      <div class="sec-label">오늘 시간표</div>
+      <div class="timeline-wrap" id="timeline-wrap"></div>
+    </div>
+
+    <!-- 일정 뷰 -->
+    <div class="view" id="view-calendar">
+      <div class="sec-label">시험 주요 일정</div>
+      <div id="event-list"></div>
+    </div>
+
+    <!-- 진도 뷰 -->
+    <div class="view" id="view-progress">
+      <div class="sec-label">5과목 학습 진도</div>
+      <div id="subject-list"></div>
+    </div>
+
+    <!-- 인증 뷰 -->
+    <div class="view" id="view-cert">
+      <div class="sec-label">7일 연속 인증 현황</div>
+      <div class="streak-row" id="streak-row"></div>
+
+      <div class="sec-label">오늘 학습 인증</div>
+      <div class="card">
+        <div class="input-group">
+          <div class="input-label">오늘 학습한 단원</div>
+          <input class="input-field" id="cert-chapter" placeholder="예: 회로이론 직류회로, 교류회로">
+        </div>
+        <div class="input-group">
+          <div class="input-label">풀이 문항수</div>
+          <input class="input-number" id="cert-count" type="number" min="0" placeholder="0" style="width:100%">
+        </div>
+        <button class="btn-primary" onclick="submitCert()">✅ 오늘 학습 인증하기</button>
+        <div class="mentor-msg" id="mentor-result"></div>
+      </div>
+
+      <div class="sec-label">인증 히스토리</div>
+      <div id="cert-history"></div>
+
+      <div class="sec-label">데이터 백업 / 복원</div>
+      <div class="card" id="backup-card">
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px;">
+          진도·인증 기록을 파일로 저장하거나 불러와서 아이폰↔PC 간 데이터를 옮길 수 있다.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <button class="btn-primary" onclick="exportData()" style="background:linear-gradient(135deg,#10b981,#059669);font-size:13px;padding:10px;">
+            📤 내보내기
+          </button>
+          <button class="btn-primary" onclick="document.getElementById('import-file').click()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);font-size:13px;padding:10px;">
+            📥 불러오기
+          </button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <div style="font-size:10px;color:var(--text3);text-align:center;line-height:1.5;">
+          내보내기 → JSON 파일 저장 → 카카오톡/메일로 전송 → 다른 기기에서 불러오기
+        </div>
+        <div id="backup-msg" style="display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 토스트 컨테이너 -->
+<div id="toast-container"></div>
+
+<script>
+// ====== 데이터 ======
+const SCHEDULE = [
+  { time:'06:00', name:'기상 / 세면',          type:'sleep',  note:'알람 1개. 스누즈 없다' },
+  { time:'06:20', name:'조깅 or 맨몸운동 30분', type:'sport',  note:'뇌 혈류 활성화 필수' },
+  { time:'07:00', name:'아침 식사',             type:'meal',   note:'단백질·탄수 균형 식사' },
+  { time:'07:30', name:'📖 오전 1블록 — 이론 신규 학습', type:'study', note:'치트키 당일 단원 정독' },
+  { time:'10:00', name:'☕ 모카포트 휴식',       type:'rest',   note:'스마트폰 OFF. 아날로그 리셋' },
+  { time:'10:15', name:'📖 오전 2블록 — 기출 풀이',     type:'study', note:'관련 단원 기출 집중' },
+  { time:'12:30', name:'점심 식사 + 낮잠 20분', type:'meal',   note:'낮잠 20분 초과 절대 금지' },
+  { time:'13:30', name:'📖 오후 1블록 — 오답 정리',     type:'study', note:'오답노트 작성 + 개념 재확인' },
+  { time:'16:00', name:'☕ 에스프레소 휴식',     type:'rest',   note:'완전 뇌 리셋' },
+  { time:'16:15', name:'📖 오후 2블록 — 심화 풀이',     type:'study', note:'계산문제·고난도 집중' },
+  { time:'19:00', name:'저녁 식사',             type:'meal',   note:'과식 금지 — 졸린다' },
+  { time:'20:00', name:'📖 야간 블록 — 백지 복습',      type:'study', note:'오늘 공식 전부 백지 재현' },
+  { time:'22:00', name:'학습 인증 + 내일 예습', type:'rest',   note:'오늘 단원·문항수 기록' },
+  { time:'22:30', name:'취침',                  type:'sleep',  note:'7.5시간 수면. 기억 고착' },
+];
+
+const ALARMS = [
+  { time:'06:00', title:'기상!', msg:'알람 1개다. 스누즈 없다. 지금 일어나라.', urgent:true },
+  { time:'06:20', title:'운동 시작', msg:'30분 조깅 or 맨몸운동. 고!' },
+  { time:'07:00', title:'아침 식사', msg:'단백질·탄수 균형 잡아서 먹어라.' },
+  { time:'07:30', title:'오전 1블록 시작', msg:'치트키 펼쳐라! 이론 신규 학습 시작.' },
+  { time:'10:00', title:'☕ 모카포트 휴식', msg:'스마트폰 내려놔라. 커피 한 잔 리셋.' },
+  { time:'10:15', title:'오전 2블록 시작', msg:'기출 풀이 돌입! 관련 단원 집중.' },
+  { time:'12:30', title:'점심 시간', msg:'밥 먹고 낮잠은 딱 20분만이다.' },
+  { time:'13:30', title:'오후 1블록 시작', msg:'오답 정리해라! 노트 작성 필수.' },
+  { time:'16:00', title:'☕ 에스프레소 휴식', msg:'뇌 완전 리셋. 딱 15분이다.' },
+  { time:'16:15', title:'오후 2블록 시작', msg:'계산문제 집중 타격!' },
+  { time:'19:00', title:'저녁 식사', msg:'과식 금지다. 졸리면 끝이야.' },
+  { time:'20:00', title:'야간 블록 시작', msg:'백지 복습 시작. 오늘 공식 전부 재현해라.' },
+  { time:'22:00', title:'📋 학습 인증 시간!', msg:'오늘 단원이랑 풀이 문항수 기록해라.', urgent:true },
+  { time:'22:30', title:'취침', msg:'수면이 기억을 굳힌다. 자라.' },
+];
+
+const EVENTS = [
+  { title:'2회 필기 원서접수', date:'2026-04-20', end:'2026-04-23', color:'var(--amber)', note:'오전 10시 시작! 알람 필수' },
+  { title:'2회 필기시험',      date:'2026-05-09', end:'2026-05-29', color:'var(--accent2)', note:'5과목 객관식 100문항' },
+  { title:'필기 합격 발표',    date:'2026-06-10', end:null,         color:'var(--green)', note:'오전 9시 큐넷 확인' },
+  { title:'2회 실기 원서접수', date:'2026-06-22', end:'2026-06-25', color:'var(--amber)', note:'합격 확인 즉시 접수!' },
+  { title:'2회 실기시험',      date:'2026-07-18', end:'2026-08-05', color:'var(--red)', note:'필답형 주관식' },
+  { title:'최종 합격자 발표',  date:'2026-09-11', end:null,         color:'var(--purple)', note:'전기기사 취득!' },
+];
+
+const SUBJECTS = [
+  { id:'s1', name:'① 회로이론 및 제어공학', color:'var(--accent)',
+    chapters:['직류회로','교류회로','다상교류','과도현상','2단자망/4단자망','비정현파 교류','제어시스템/전달함수','시간응답/주파수응답','안정도 판별'] },
+  { id:'s2', name:'② 전기자기학', color:'var(--teal)',
+    chapters:['정전계','정자계','전자유도','전자파','빈출 공식 암기'] },
+  { id:'s3', name:'③ 전력공학', color:'var(--green)',
+    chapters:['전선로','송전특성','안정도','중성점 접지방식','고장계산','보호계전','발전/변전/배전'] },
+  { id:'s4', name:'④ 전기기기', color:'var(--amber)',
+    chapters:['직류기','변압기','유도기','동기기','정류기'] },
+  { id:'s5', name:'⑤ 전기설비기술기준(KEC)', color:'var(--purple)',
+    chapters:['총칙/용어/전압구분','전선 및 배선설비','접지시스템','과전류 보호','피뢰설비','특수시설','안전보호/이격거리'] },
+];
+
+const CHAPTERS_BY_DAY = [
+  { start:'2026-03-23', end:'2026-03-26', chapter:'회로이론 — 직류·교류·다상교류', sub:'필기 치트키 1과목 | 1단계 이론' },
+  { start:'2026-03-27', end:'2026-03-30', chapter:'전기자기학 — 정전계·정자계·전자유도', sub:'필기 치트키 2과목 | 1단계 이론' },
+  { start:'2026-03-31', end:'2026-03-31', chapter:'회로이론 — 제어공학 심화', sub:'전달함수·안정도 판별' },
+  { start:'2026-04-01', end:'2026-04-01', chapter:'1단계 완료 — 1·2과목 복습', sub:'오답노트 정리' },
+  { start:'2026-04-02', end:'2026-04-05', chapter:'전력공학 — 송전선로·고장계산', sub:'필기 치트키 3과목 | 2단계' },
+  { start:'2026-04-06', end:'2026-04-10', chapter:'전기기기 — 직류기·변압기·유도기', sub:'필기 치트키 4과목 | 2단계' },
+  { start:'2026-04-11', end:'2026-04-14', chapter:'전기설비기술기준(KEC) — 전범위', sub:'필기 치트키 5과목 | 2단계' },
+  { start:'2026-04-15', end:'2026-04-25', chapter:'기출 5개년 전회차 풀이', sub:'3단계 기출 집중' },
+  { start:'2026-04-26', end:'2026-05-05', chapter:'오답 반복 + 치트키 2회독', sub:'4단계 약점 타격' },
+  { start:'2026-05-06', end:'2026-05-08', chapter:'핵심 공식 최종 암기', sub:'5단계 마무리' },
+];
+
+const MENTOR_MSGS = [
+  '잘했다! 오늘 목표 달성이다. 내일도 이 기세로 간다.',
+  '그래, 이게 맞는 거야. 꾸준함이 재능을 이긴다.',
+  '인증 완료. 오늘 하루 제대로 싸웠다. 수고했어.',
+  '좋아. 이 습관이 시험장에서 빛을 발한다.',
+  '오늘도 버텼다. 버티는 놈이 결국 붙는다.',
+  '완벽하지 않아도 괜찮다. 매일 하는 게 중요한 거야.',
+  '이 기록이 쌓여서 합격증이 된다. 계속 해.',
+];
+
+// ====== 상태 ======
+let firedAlarms = new Set();
+let currentTab = 'dashboard';
+
+// ====== localStorage ======
+function load(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+let progress = load('ekg_progress', {});
+let certs = load('ekg_certs', []);
+let firedToday = load('ekg_fired_' + todayStr(), []);
+firedAlarms = new Set(firedToday);
+
+function todayStr() {
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+// ====== 유틸 ======
+function toMins(timeStr) {
+  const [h,m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+function diffDays(dateStr) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = new Date(dateStr); target.setHours(0,0,0,0);
+  return Math.ceil((target - today) / 86400000);
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+
+// ====== 탭 전환 ======
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const tabs = ['dashboard','schedule','calendar','progress','cert'];
+    t.classList.toggle('active', tabs[i] === id);
+  });
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  currentTab = id;
+}
+
+// ====== 토스트 ======
+function showToast(title, msg, type='normal') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type==='urgent' ? ' urgent' : type==='success' ? ' success' : '');
+  const icon = type==='urgent' ? '🚨' : type==='success' ? '✅' : '🔔';
+  el.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-8px)';
+    setTimeout(() => el.remove(), 300);
+  }, type==='urgent' ? 8000 : 5000);
+}
+
+// ====== 현재 블록 계산 ======
+function getCurrentBlock(now) {
+  const nowM = now.getHours()*60 + now.getMinutes();
+  let cur = null, nxt = null;
+  for (let i = 0; i < SCHEDULE.length; i++) {
+    const blockM = toMins(SCHEDULE[i].time);
+    const nextM = i+1 < SCHEDULE.length ? toMins(SCHEDULE[i+1].time) : 24*60;
+    if (nowM >= blockM && nowM < nextM) { cur = SCHEDULE[i]; nxt = SCHEDULE[i+1]||null; break; }
+  }
+  return { cur, nxt };
+}
+
+// ====== 오늘 단원 ======
+function getTodayChapter() {
+  const today = todayStr();
+  for (const c of CHAPTERS_BY_DAY) {
+    if (today >= c.start && today <= c.end) return c;
+  }
+  return { chapter: '기출 풀이 집중', sub: '꾸준히 반복하라' };
+}
+
+// ====== D-Day 업데이트 ======
+function updateDDay() {
+  const dWritten = diffDays('2026-05-09');
+  const dReg = diffDays('2026-04-20');
+  const elW = document.getElementById('dd-written');
+  const elR = document.getElementById('dd-reg');
+  if (elW) elW.textContent = dWritten > 0 ? 'D-'+dWritten : dWritten === 0 ? 'D-Day!' : '완료';
+  if (elR) elR.textContent = dReg > 0 ? 'D-'+dReg : dReg === 0 ? 'D-Day!' : '완료';
+}
+
+// ====== 현재 블록 업데이트 ======
+function updateCurrentBlock() {
+  const now = new Date();
+  const { cur, nxt } = getCurrentBlock(now);
+  if (!cur) return;
+  const badge = document.getElementById('current-block-badge');
+  const name = document.getElementById('current-block-name');
+  const remain = document.getElementById('current-block-remain');
+  const fill = document.getElementById('block-fill');
+  const pct = document.getElementById('block-pct');
+
+  const typeMap = { study:'공부', meal:'식사', rest:'휴식', sport:'운동', sleep:'수면' };
+  if (badge) { badge.className = 'block-badge block-' + cur.type; badge.textContent = typeMap[cur.type]||''; }
+  if (name) name.textContent = cur.name;
+
+  const nowM = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+  const startM = toMins(cur.time);
+  const endM = nxt ? toMins(nxt.time) : 24*60;
+  const elapsed = nowM - startM;
+  const total = endM - startM;
+  const p = Math.min(100, Math.round((elapsed/total)*100));
+  const remMins = Math.max(0, Math.ceil(endM - nowM));
+  const rh = Math.floor(remMins/60), rm = remMins%60;
+
+  if (remain) remain.textContent = `다음 알림까지 ${pad(rh)}:${pad(rm)}`;
+  if (fill) fill.style.width = p+'%';
+  if (pct) pct.textContent = p+'%';
+}
+
+// ====== 헤더 시계 ======
+function updateClock() {
+  const now = new Date();
+  const el = document.getElementById('hdr-time');
+  if (el) el.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+// ====== 알람 체크 ======
+function checkAlarms() {
+  const now = new Date();
+  const key = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  if (now.getSeconds() > 10) return;
+
+  // 매일 새벽 0시 리셋
+  if (key === '00:00') {
+    firedAlarms.clear();
+    save('ekg_fired_' + todayStr(), []);
+  }
+
+  for (const alarm of ALARMS) {
+    if (alarm.time === key && !firedAlarms.has(alarm.time)) {
+      firedAlarms.add(alarm.time);
+      save('ekg_fired_' + todayStr(), [...firedAlarms]);
+      showToast(alarm.title, alarm.msg, alarm.urgent ? 'urgent' : 'normal');
+    }
+  }
+
+  // 원서접수 전날 특별 알람
+  const dReg = diffDays('2026-04-20');
+  if (dReg === 1 && key === '21:00' && !firedAlarms.has('reg-notice')) {
+    firedAlarms.add('reg-notice');
+    showToast('⚡ 내일 원서접수!', '내일 오전 10시 큐넷 접속해서 원서접수해라. 자리 꽉 차기 전에!', 'urgent');
+  }
+  if (dReg === 0 && key === '09:50' && !firedAlarms.has('reg-10min')) {
+    firedAlarms.add('reg-10min');
+    showToast('🚨 10분 후 원서접수!', '지금 큐넷 열어놔라. 10시 정각에 바로 접수해라!', 'urgent');
+  }
+}
+
+// ====== 시간표 렌더 ======
+function renderSchedule() {
+  const wrap = document.getElementById('timeline-wrap');
+  if (!wrap) return;
+  const now = new Date();
+  const { cur } = getCurrentBlock(now);
+  let html = '';
+  for (const block of SCHEDULE) {
+    const isActive = cur && cur.time === block.time;
+    const dotClass = 'dot-' + block.type + (isActive ? ' dot-active' : '');
+    html += `
+      <div class="tl-item ${isActive ? 'active-row' : ''}">
+        <div class="tl-time">${block.time}</div>
+        <div class="tl-dot ${dotClass}"></div>
+        <div class="tl-content">
+          <div class="tl-name ${isActive ? 'active-text' : ''}">${block.name}</div>
+          <div class="tl-note">${block.note}</div>
+        </div>
+      </div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+// ====== 일정 렌더 ======
+function renderCalendar() {
+  const list = document.getElementById('event-list');
+  if (!list) return;
+  let html = '';
+  for (const ev of EVENTS) {
+    const d = diffDays(ev.date);
+    const ddText = d > 0 ? 'D-'+d : d === 0 ? 'D-Day!' : '완료';
+    const ddColor = d > 0 ? (d <= 7 ? 'var(--red)' : 'var(--accent2)') : 'var(--text3)';
+    const dateRange = ev.end ? `${ev.date} ~ ${ev.end.slice(5)}` : ev.date;
+    html += `
+      <div class="event-item">
+        <div class="event-dot" style="background:${ev.color}"></div>
+        <div style="flex:1">
+          <div class="event-title">${ev.title}</div>
+          <div class="event-date">${dateRange} · ${ev.note}</div>
+        </div>
+        <div class="event-dday" style="background:rgba(59,130,246,0.1);color:${ddColor}">${ddText}</div>
+      </div>`;
+  }
+  list.innerHTML = html;
+}
+
+// ====== 진도 렌더 ======
+function renderProgress() {
+  const list = document.getElementById('subject-list');
+  if (!list) return;
+  let html = '';
+  for (const subj of SUBJECTS) {
+    const total = subj.chapters.length;
+    const done = subj.chapters.filter((_,i) => progress[subj.id+'_'+i]).length;
+    const p = Math.round((done/total)*100);
+    let chapters = '';
+    subj.chapters.forEach((ch, i) => {
+      const key = subj.id+'_'+i;
+      const isDone = !!progress[key];
+      chapters += `
+        <div class="chapter-item" onclick="toggleChapter('${key}')">
+          <div class="ch-check ${isDone ? 'done' : ''}">${isDone ? '✓' : ''}</div>
+          <div class="ch-text ${isDone ? 'done' : ''}">${ch}</div>
+        </div>`;
+    });
+    html += `
+      <div class="subject-card">
+        <div class="subj-header">
+          <div class="subj-name" style="color:${subj.color}">${subj.name}</div>
+          <div class="subj-pct" style="color:${subj.color}">${p}%</div>
+        </div>
+        <div class="progress-wrap" style="margin-bottom:10px">
+          <div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${subj.color}"></div></div>
+        </div>
+        <div class="chapter-list">${chapters}</div>
+      </div>`;
+  }
+  list.innerHTML = html;
+  updateTotalProgress();
+}
+
+function toggleChapter(key) {
+  progress[key] = !progress[key];
+  save('ekg_progress', progress);
+  renderProgress();
+}
+
+function updateTotalProgress() {
+  let total = 0, done = 0;
+  for (const subj of SUBJECTS) {
+    subj.chapters.forEach((_,i) => {
+      total++;
+      if (progress[subj.id+'_'+i]) done++;
+    });
+  }
+  const p = total > 0 ? Math.round((done/total)*100) : 0;
+  const fill = document.getElementById('total-fill');
+  const pct = document.getElementById('total-pct');
+  if (fill) fill.style.width = p+'%';
+  if (pct) pct.textContent = p+'%';
+}
+
+// ====== 인증 렌더 ======
+function renderCert() {
+  // 스트릭
+  const row = document.getElementById('streak-row');
+  if (!row) return;
+  let html = '';
+  const today = todayStr();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+    const isToday = ds === today;
+    const certDone = certs.find(c => c.date === ds);
+    const label = i === 0 ? '오늘' : `${d.getMonth()+1}/${d.getDate()}`;
+    if (certDone) html += `<div class="streak-dot streak-done" title="${ds}">✓</div>`;
+    else if (isToday) html += `<div class="streak-dot streak-today">${label}</div>`;
+    else html += `<div class="streak-dot streak-empty">${label}</div>`;
+  }
+  row.innerHTML = html;
+
+  // 히스토리
+  const hist = document.getElementById('cert-history');
+  if (!hist) return;
+  const recent = [...certs].reverse().slice(0, 7);
+  if (recent.length === 0) {
+    hist.innerHTML = '<div class="card" style="color:var(--text3);font-size:12px;text-align:center">아직 인증 기록이 없다.<br>오늘 첫 인증을 해라!</div>';
+    return;
+  }
+  let hhtml = '';
+  for (const c of recent) {
+    hhtml += `
+      <div class="card" style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:12px;color:var(--text3);font-family:var(--mono)">${c.date}</span>
+          <span style="font-size:11px;background:rgba(16,185,129,0.15);color:var(--green);padding:2px 8px;border-radius:4px">${c.count}문항</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2)">${c.chapter}</div>
+      </div>`;
+  }
+  hist.innerHTML = hhtml;
+}
+
+// ====== 인증 제출 ======
+function submitCert() {
+  const chapter = document.getElementById('cert-chapter').value.trim();
+  const count = parseInt(document.getElementById('cert-count').value) || 0;
+  if (!chapter) { showToast('입력 필요', '학습한 단원을 입력해라.'); return; }
+
+  const today = todayStr();
+  const existing = certs.findIndex(c => c.date === today);
+  const record = { date: today, chapter, count };
+  if (existing >= 0) certs[existing] = record;
+  else certs.push(record);
+  save('ekg_certs', certs);
+
+  const msg = MENTOR_MSGS[Math.floor(Math.random() * MENTOR_MSGS.length)];
+  const result = document.getElementById('mentor-result');
+  if (result) { result.style.display = 'block'; result.textContent = '👨‍🏫 ' + msg; }
+
+  showToast('인증 완료!', `${chapter} · ${count}문항 기록됨`, 'success');
+  document.getElementById('cert-chapter').value = '';
+  document.getElementById('cert-count').value = '';
+  renderCert();
+}
+
+// ====== 오늘 단원 업데이트 ======
+function updateTodayChapter() {
+  const c = getTodayChapter();
+  const el = document.getElementById('today-chapter');
+  const sub = document.getElementById('today-chapter-sub');
+  if (el) el.textContent = c.chapter;
+  if (sub) sub.textContent = c.sub;
+}
+
+// ====== 원장 한마디 (랜덤 변경) ======
+const QUOTES = [
+  '지금 이 순간에도 어딘가에서 누군가는 공부하고 있다. 네가 쉬는 동안 그 차이는 벌어진다.',
+  '합격하는 놈과 떨어지는 놈의 차이는 머리가 아니라 습관이다.',
+  '오늘 힘들다고 느끼는 건 네가 성장하고 있다는 증거다.',
+  '핑계를 대는 순간 그 핑계가 네 실력이 된다.',
+  '치트키 한 페이지가 시험장에서 한 문제를 살린다.',
+  '지금 공부하기 싫은 게 정상이다. 그래도 하는 게 합격이다.',
+  '기출 한 회 더 푸는 놈이 결국 붙는다.',
+];
+
+// ====== 메인 틱 ======
+let tickCount = 0;
+function tick() {
+  const now = new Date();
+  updateClock();
+  tickCount++;
+  if (tickCount % 60 === 0) {
+    checkAlarms();
+    updateDDay();
+    updateCurrentBlock();
+    if (currentTab === 'schedule') renderSchedule();
+    if (currentTab === 'calendar') renderCalendar();
+  }
+  if (tickCount % 5 === 0) updateCurrentBlock();
+}
+
+// ====== 초기화 ======
+function init() {
+  updateDDay();
+  updateCurrentBlock();
+  updateTodayChapter();
+  updateTotalProgress();
+
+  // 랜덤 원장 한마디
+  const qel = document.getElementById('mentor-quote');
+  if (qel) qel.textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+
+  // 탭 클릭 시 렌더
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const tabs = ['dashboard','schedule','calendar','progress','cert'];
+    t.addEventListener('click', () => {
+      const id = tabs[i];
+      if (id === 'schedule') renderSchedule();
+      if (id === 'calendar') renderCalendar();
+      if (id === 'progress') renderProgress();
+      if (id === 'cert') renderCert();
+    });
+  });
+
+  // 시작 인사
+  setTimeout(() => {
+    showToast('⚡ 전기기사 수험 알리미 시작', '오늘도 8시간 공부다. 화이팅!');
+  }, 500);
+
+  setInterval(tick, 1000);
+}
+
+window.addEventListener('load', init);
+
+// ====== 내보내기 ======
+function exportData() {
+  const data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    device: navigator.userAgent.includes('iPhone') ? 'iPhone' : 'PC',
+    progress: load('ekg_progress', {}),
+    certs: load('ekg_certs', []),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `전기기사_학습데이터_${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 내보내기 완료', '파일을 저장했다. 카카오톡으로 자신한테 보내거나 메일로 전송해라.', 'success');
+}
+
+// ====== 불러오기 ======
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      // 유효성 검사
+      if (!data.version || !data.progress || !data.certs) {
+        throw new Error('올바른 형식이 아니다');
+      }
+      // 기존 데이터와 병합 (인증 기록은 날짜 기준 중복 제거)
+      const existingCerts = load('ekg_certs', []);
+      const existingDates = new Set(existingCerts.map(c => c.date));
+      const newCerts = data.certs.filter(c => !existingDates.has(c.date));
+      const mergedCerts = [...existingCerts, ...newCerts].sort((a,b) => a.date.localeCompare(b.date));
+
+      // 진도는 체크된 것 우선 병합
+      const existingProgress = load('ekg_progress', {});
+      const mergedProgress = { ...data.progress, ...existingProgress };
+      // 불러온 데이터에서 체크된 항목 반영 (기존에 없던 것만)
+      for (const [k, v] of Object.entries(data.progress)) {
+        if (v && !existingProgress[k]) mergedProgress[k] = true;
+      }
+
+      save('ekg_progress', mergedProgress);
+      save('ekg_certs', mergedCerts);
+      progress = mergedProgress;
+      certs = mergedCerts;
+
+      const msg = document.getElementById('backup-msg');
+      if (msg) {
+        msg.style.display = 'block';
+        msg.style.background = 'rgba(16,185,129,0.15)';
+        msg.style.color = '#10b981';
+        msg.style.border = '1px solid rgba(16,185,129,0.3)';
+        msg.textContent = `✅ 불러오기 완료 — 인증 ${newCerts.length}건 추가, 진도 병합 완료`;
+        setTimeout(() => { msg.style.display = 'none'; }, 5000);
+      }
+
+      showToast('📥 불러오기 완료', `인증 ${newCerts.length}건 추가됨. 데이터 병합 완료.`, 'success');
+      renderCert();
+      renderProgress();
+      updateTotalProgress();
+    } catch (err) {
+      showToast('❌ 오류', '파일을 읽을 수 없다. 올바른 백업 파일인지 확인해라.');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+</script>
+</body>
+</html>
