@@ -515,6 +515,19 @@ main { flex: 1; padding: 16px 16px 80px; }
       <div class="card" id="mentor-quote" style="border-left:3px solid var(--accent); font-size:13px; color:var(--text2); line-height:1.7;">
         지금 이 순간에도 어딘가에서 누군가는 공부하고 있다. 네가 쉬는 동안 그 차이는 벌어진다.
       </div>
+
+      <div class="sec-label">알림 설정</div>
+      <div class="card" id="notif-card">
+        <div id="notif-status" style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn-primary" id="notif-btn" onclick="handleNotifBtn()" style="font-size:12px;padding:9px;">
+            🔔 알림 허용
+          </button>
+          <button class="btn-primary" onclick="testAlarm()" style="background:linear-gradient(135deg,#10b981,#059669);font-size:12px;padding:9px;">
+            🔊 테스트
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- 시간표 뷰 -->
@@ -798,6 +811,99 @@ function updateClock() {
   if (el) el.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
+// ====== Web Audio 비프음 ======
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function beep(count, urgent) {
+  try {
+    const ctx = getAudioCtx();
+    const vol  = urgent ? 0.55 : 0.35;
+    const freq = urgent ? 880  : 660;
+    const dur  = urgent ? 0.18 : 0.13;
+    const gap  = urgent ? 0.22 : 0.18;
+    for (let i = 0; i < count; i++) {
+      const t = ctx.currentTime + i * gap;
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+      gain.gain.linearRampToValueAtTime(0,   t + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur + 0.02);
+    }
+  } catch(e) {}
+}
+
+// ====== 브라우저 알림 권한 요청 ======
+function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') showToast('알림 허용됨', '이제 탭 최소화해도 알림이 온다.', 'success');
+    });
+  }
+}
+function sendBrowserNotification(title, msg, urgent) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const icon = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%231a3a5c"/><text x="32" y="46" font-size="36" text-anchor="middle">%E2%9A%A1</text></svg>';
+  const n = new Notification('⚡ ' + title, {
+    body: msg,
+    icon: icon,
+    requireInteraction: !!urgent,
+    tag: 'ekg-alarm-' + Date.now(),
+  });
+  setTimeout(() => n.close(), urgent ? 10000 : 6000);
+}
+
+// ====== 통합 알림 발송 ======
+function fireAlarm(title, msg, urgent) {
+  showToast(title, msg, urgent ? 'urgent' : 'normal');
+  sendBrowserNotification(title, msg, urgent);
+  beep(urgent ? 5 : 2, urgent);
+}
+
+// ====== 알림 상태 UI 업데이트 ======
+function updateNotifStatus() {
+  const statusEl = document.getElementById('notif-status');
+  const btnEl    = document.getElementById('notif-btn');
+  if (!statusEl || !btnEl) return;
+  if (!('Notification' in window)) {
+    statusEl.innerHTML = '❌ 이 브라우저는 알림을 지원하지 않는다.';
+    btnEl.style.display = 'none';
+    return;
+  }
+  const p = Notification.permission;
+  if (p === 'granted') {
+    statusEl.innerHTML = '✅ <b style="color:#10b981">브라우저 알림 허용됨</b> — 탭 최소화해도 알림이 온다.<br>소리는 페이지와 처음 상호작용(클릭) 후 활성화된다.';
+    btnEl.textContent = '✅ 허용 완료';
+    btnEl.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+    btnEl.disabled = true;
+  } else if (p === 'denied') {
+    statusEl.innerHTML = '🚫 <b style="color:#ef4444">알림이 차단됨</b> — 브라우저 주소창 왼쪽 자물쇠 아이콘 클릭 → 알림 → 허용으로 바꿔라.';
+    btnEl.textContent = '🚫 브라우저에서 직접 허용';
+    btnEl.disabled = true;
+  } else {
+    statusEl.innerHTML = '🔔 알림을 허용하면 탭 최소화 상태에서도 PC 화면에 팝업이 뜬다.<br>아래 버튼을 눌러 허용해라.';
+    btnEl.textContent = '🔔 알림 허용';
+    btnEl.disabled = false;
+  }
+}
+function handleNotifBtn() {
+  requestNotificationPermission();
+  setTimeout(updateNotifStatus, 1500);
+}
+function testAlarm() {
+  beep(3, false);
+  fireAlarm('🔊 테스트 알림', '소리랑 브라우저 알림이 정상 작동 중이다. 확인해라.', false);
+}
+
 // ====== 알람 체크 ======
 function checkAlarms() {
   const now = new Date();
@@ -814,7 +920,7 @@ function checkAlarms() {
     if (alarm.time === key && !firedAlarms.has(alarm.time)) {
       firedAlarms.add(alarm.time);
       save('ekg_fired_' + todayStr(), [...firedAlarms]);
-      showToast(alarm.title, alarm.msg, alarm.urgent ? 'urgent' : 'normal');
+      fireAlarm(alarm.title, alarm.msg, alarm.urgent);
     }
   }
 
@@ -822,11 +928,11 @@ function checkAlarms() {
   const dReg = diffDays('2026-04-20');
   if (dReg === 1 && key === '21:00' && !firedAlarms.has('reg-notice')) {
     firedAlarms.add('reg-notice');
-    showToast('⚡ 내일 원서접수!', '내일 오전 10시 큐넷 접속해서 원서접수해라. 자리 꽉 차기 전에!', 'urgent');
+    fireAlarm('⚡ 내일 원서접수!', '내일 오전 10시 큐넷 접속해서 원서접수해라. 자리 꽉 차기 전에!', true);
   }
   if (dReg === 0 && key === '09:50' && !firedAlarms.has('reg-10min')) {
     firedAlarms.add('reg-10min');
-    showToast('🚨 10분 후 원서접수!', '지금 큐넷 열어놔라. 10시 정각에 바로 접수해라!', 'urgent');
+    fireAlarm('🚨 10분 후 원서접수!', '지금 큐넷 열어놔라. 10시 정각에 바로 접수해라!', true);
   }
 }
 
@@ -1038,6 +1144,7 @@ function init() {
   updateCurrentBlock();
   updateTodayChapter();
   updateTotalProgress();
+  updateNotifStatus();
 
   // 랜덤 원장 한마디
   const qel = document.getElementById('mentor-quote');
@@ -1055,9 +1162,10 @@ function init() {
     });
   });
 
-  // 시작 인사
+  // 시작 인사 + 알림 권한 요청
   setTimeout(() => {
     showToast('⚡ 전기기사 수험 알리미 시작', '오늘도 8시간 공부다. 화이팅!');
+    requestNotificationPermission();
   }, 500);
 
   setInterval(tick, 1000);
