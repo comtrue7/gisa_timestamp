@@ -465,13 +465,31 @@ main { flex: 1; padding: 16px 16px 80px; }
       <div class="dday-grid">
         <div class="dday-card urgent">
           <div class="dday-num" id="dd-written" style="color:var(--amber)">-</div>
-          <div class="dday-label">✏️ 필기시험</div>
-          <div class="dday-date">2026.05.09</div>
+          <div class="dday-label">✏️ 필기시험 D-Day</div>
+          <div class="dday-date">05.27(수) 14:10</div>
         </div>
         <div class="dday-card ok">
-          <div class="dday-num" id="dd-reg" style="color:var(--accent2)">-</div>
-          <div class="dday-label">📋 원서접수</div>
-          <div class="dday-date">서울 14:00 시작</div>
+          <div class="dday-num" id="dd-result" style="color:var(--green)">-</div>
+          <div class="dday-label">📋 필기합격 발표</div>
+          <div class="dday-date">2026.06.10</div>
+        </div>
+      </div>
+
+      <div class="sec-label">수험 정보</div>
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">수험번호</div>
+            <div style="font-family:var(--mono);font-size:15px;font-weight:600;color:var(--accent2);">07035192</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">시험일시</div>
+            <div style="font-size:13px;font-weight:500;color:var(--text);">05.27(수) 14:10</div>
+          </div>
+          <div style="grid-column:span 2;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">시험장소</div>
+            <div style="font-size:12px;color:var(--text2);">서울호서직업전문학교 [CBT 2실]</div>
+          </div>
         </div>
       </div>
 
@@ -636,7 +654,7 @@ const EVENTS = [
   // ── 2회 ──────────────────────────────────────────────
   { title:'[2회] 📝 필기 사전입력',  date:'2026-04-16', end:'2026-04-19', color:'var(--teal)',    note:'접수 4일전 14:00 시작 ~ 전일 24:00 마감' },
   { title:'[2회] 필기 원서접수',      date:'2026-04-20', end:'2026-04-23', color:'var(--amber)',   note:'서울·인천·경기 14:00 시작 | 종료 4.23(목) 18:00' },
-  { title:'[2회] 필기시험',           date:'2026-05-09', end:'2026-05-29', color:'var(--accent2)', note:'5과목 객관식 100문항' },
+  { title:'[2회] 필기시험',           date:'2026-05-27', end:'2026-05-27', color:'var(--accent2)', note:'수험번호 07035192 | 서울호서직업전문학교 CBT 2실 | 14:10 입실' },
   { title:'[2회] 필기 합격 발표',     date:'2026-06-10', end:null,         color:'var(--green)',   note:'오전 9시 큐넷 확인' },
   { title:'[2회] 실기 원서접수',      date:'2026-06-22', end:'2026-06-25', color:'var(--amber)',   note:'필기합격 확인 즉시 접수!' },
   { title:'[2회] 실기시험',           date:'2026-07-18', end:'2026-08-05', color:'var(--red)',     note:'필답형 주관식' },
@@ -777,12 +795,12 @@ function getTodayChapter() {
 
 // ====== D-Day 업데이트 ======
 function updateDDay() {
-  const dWritten = diffDays('2026-05-09');
-  const dReg = diffDays('2026-04-20');
+  const dWritten = diffDays('2026-05-27');
+  const dResult  = diffDays('2026-06-10');
   const elW = document.getElementById('dd-written');
-  const elR = document.getElementById('dd-reg');
+  const elR = document.getElementById('dd-result');
   if (elW) elW.textContent = dWritten > 0 ? 'D-'+dWritten : dWritten === 0 ? 'D-Day!' : '완료';
-  if (elR) elR.textContent = dReg > 0 ? 'D-'+dReg : dReg === 0 ? 'D-Day!' : '완료';
+  if (elR) elR.textContent = dResult  > 0 ? 'D-'+dResult  : dResult  === 0 ? 'D-Day!' : '완료';
 }
 
 // ====== 현재 블록 업데이트 ======
@@ -1039,6 +1057,29 @@ function checkAlarms() {
     firedAlarms.add('3-preg-open');
     save('ekg_fired_' + todayStr(), [...firedAlarms]);
     fireAlarm('🚨 [3회] 실기 원서접수 지금 시작!', '큐넷 바로 접속해서 실기 원서접수해라!', true);
+  }
+
+  // ===== 2회 필기시험 당일 알람 (5.27 14:10) =====
+  const dExam = diffDays('2026-05-27');
+  if (dExam === 1 && key === '21:00' && !firedAlarms.has('exam-eve')) {
+    firedAlarms.add('exam-eve');
+    save('ekg_fired_' + todayStr(), [...firedAlarms]);
+    fireAlarm('📋 내일 필기시험!', '수험번호 07035192 | 서울호서직업전문학교 CBT 2실 | 14:10 입실. 신분증·수험표 챙겨라. 오늘 일찍 자라.', true);
+  }
+  if (dExam === 0 && key === '07:00' && !firedAlarms.has('exam-morning')) {
+    firedAlarms.add('exam-morning');
+    save('ekg_fired_' + todayStr(), [...firedAlarms]);
+    fireAlarm('⚡ 시험 당일!', '오늘 14:10 서울호서직업전문학교 CBT 2실. 아침 든든히 먹고 오전엔 핵심공식만 가볍게 복습해라.', false);
+  }
+  if (dExam === 0 && key === '12:00' && !firedAlarms.has('exam-depart')) {
+    firedAlarms.add('exam-depart');
+    save('ekg_fired_' + todayStr(), [...firedAlarms]);
+    fireAlarm('🚶 지금 출발 준비!', '14:10 입실. 신분증·수험표 확인하고 여유있게 출발해라. 늦으면 끝이다.', true);
+  }
+  if (dExam === 0 && key === '13:00' && !firedAlarms.has('exam-1h')) {
+    firedAlarms.add('exam-1h');
+    save('ekg_fired_' + todayStr(), [...firedAlarms]);
+    fireAlarm('🏫 입실 1시간 전!', '서울호서직업전문학교 CBT 2실. 아직 안 나갔으면 지금 당장 출발해라!', true);
   }
 }
 
